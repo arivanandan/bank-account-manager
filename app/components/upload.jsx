@@ -13,7 +13,11 @@ const Import = React.createClass({
                  <option value='icici'>ICICI</option>
                  <option value='federal'>FEDERAL</option>
                </select>
-             <button className='button expanded btn'>Submit</button>
+               <select name='filetype'>
+                 <option value='csv'>CSV</option>
+                 <option value='xlxs'>XLXS</option>
+               </select>
+             <button className='button btn'>Submit</button>
            </form>
          </div>
        </div>
