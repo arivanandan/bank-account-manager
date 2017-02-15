@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "dependencies": {
     "body-parser": "^1.15.0",
+    "dotenv": "^4.0.0",
     "express": "3.x",
     "express-myconnection": "^1.0.4",
     "express-mysql-session": "^1.2.0",

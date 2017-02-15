@@ -9,7 +9,7 @@ const session = require('express-session')
 const uuid = require('node-uuid')
 const MySQLStore = require('express-mysql-session')(session)
 const multer = require('multer')
-// const routes = require('./routes.js')
+const dotenv = require('dotenv')
 
 const fs = require('fs')
 const Guid = require('guid')
@@ -19,31 +19,33 @@ const Querystring = require('querystring')
 const path = require('path')
 const formidable = require('formidable')
 
+dotenv.load()
+
 const options = {
-  host: 'localhost',
-  user: 'root',
-  password: 'root',
-  database: 'expenseApp'
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+  checkExpirationInterval: 60 * 10
 }
 const con = connection(mysql, options)
 const sessionStore = new MySQLStore(options)
 
 let csrf_guid = Guid.raw()
 const api_version = 'v1.0'
-const app_id = '354578414912778'
-const app_secret = '95bf1f8379d7cd0bf5fb8a9c62416a37'
+const app_id = process.env.FB_APP-ID
+const app_secret = process.env.FB_SECRET
 const me_endpoint_base_url = 'https://graph.accountkit.com/v1.1/me'
 const token_exchange_base_url = 'https://graph.accountkit.com/v1.1/access_token'
 
 app.use(session({
-  key: 'session',
-  secret: `|s9a003==-32-3[\''ads.,@ZN'`,
+  key: SES_KEY,
+  secret: SES_SECRET,
   genid: req => uuid.v4(),
-  cookie: { maxAge: 60000 },
-  resave: true,
-  saveUninitialized: true,
+  cookie: { maxAge: 1000 * 60 * 10 },
+  resave: false,
+  saveUninitialized: false,
   store: sessionStore,
-  maxAge: 1000 * 60 * 500,
   httpOnly: true,
   secure: true,
   ephemeral: true
@@ -52,18 +54,17 @@ app.use(session({
 app.use(logger('dev'))
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(bodyParser.json())
-//app.set('view engine', 'html')
-//app.engine('html', require('hbs').__express)
 app.use(con)
 app.use(express.static(__dirname + '/public'))
 
 app.post('/sendcode', login)
 app.post('/getin', getin)
 app.post('/senddata', registerName)
-app.get('/gettransaction', displayTx)
+app.get('/gettransaction', ensureLoggedIn, displayTx)
 app.post('/upload', multer({ dest: './uploads/'}).single('upl'), uploadFiles)
 app.post('/addTransaction', addTx)
 app.post('/updatedate', updateTo)
+app.get('/logout', logout)
 app.get('/', initialize)
 
 app.listen(3000, () => console.log('Listening at port 3k'))
@@ -104,19 +105,20 @@ function login (req, res) {
             console.log('Connection Error')
             return err
           }
-          req.session.user = respBody.phone.national_number
-        connection.query('SELECT name FROM login WHERE fbSign = ?', respBody.id, function (err, rows) {
-          if (rows.length === 0 || rows[0].name === null) {
-            connection.query('INSERT INTO login VALUES (?, ?, ?, ?)', [respBody.id, req.session.id, null, respBody.phone.national_number])
-            var html = Mustache.to_html(loadRegister(), view)
-            res.send(html)
-          } else {
-            let html = Mustache.to_html(loadHomePage(), view)
-            res.send(html)
-          }
+          req.session.user = respBody.id
+          connection.query('SELECT name FROM userDetails WHERE fbSign = ?', respBody.id, function (err, rows) {
+            if (rows.length === 0 || rows[0].name === null) {
+              connection.query('INSERT INTO login VALUES (?, ?)', [respBody.id, req.session.id])
+              connection.query('INSERT INTO userDetails VALUES (?, ?, ?, ?)', [respBody.id, respBody.phone.national_number])
+              var html = Mustache.to_html(loadRegister(), view)
+              res.send(html)
+            } else {
+              let html = Mustache.to_html(loadHomePage(), view)
+              res.send(html)
+            }
+          })
         })
       })
-    })
     })
   } else {
     // login failed
@@ -126,9 +128,24 @@ function login (req, res) {
 }
 
 function getin (req, res) {
-  req.session.user = 201320543668190
+  req.session.user = process.env.PRIVATE_KEY
   let html = Mustache.to_html(loadHomePage())
   res.send(html)
+}
+
+function initialize (req, res) {
+  const view = {
+    appId: app_id,
+    csrf: csrf_guid,
+    version: api_version
+  }
+  if (req.session.user) {
+    let html = Mustache.to_html(loadHomePage())
+    res.send(html)
+  } else {
+    const html = Mustache.to_html(loadLogin(), view)
+    res.send(html)
+  }
 }
 
 function registerName (req, res) {
@@ -137,11 +154,8 @@ function registerName (req, res) {
       console.log('Connection Error')
       return err
     }
-  connection.query('UPDATE login SET name = ? WHERE fbSign = ?', [req.body.name, req.body.id])
-  let view = {
-
-  }
-  let html = Mustache.to_html(loadHomePage(), view)
+  connection.query('UPDATE userDetails SET name = ?, primaryBank = ? WHERE fbSign = ?', [req.body.name, req.body.bank, req.body.id])
+  let html = Mustache.to_html(loadHomePage())
   res.send(html)
   })
 }
@@ -172,24 +186,15 @@ function displayTx (req, res) {
   })
 }
 
-function initialize (req, res) {
-  const view = {
-    appId: app_id,
-    csrf: csrf_guid,
-    version: api_version
-  }
-  const html = Mustache.to_html(loadLogin(), view)
-  res.send(html)
-}
-
 function uploadFiles (req, res) {
   const bank = req.body.bank
   const fbSign = req.session.user
-  const parser = require(__dirname + '/scripts/parser')
-  const data = parser()
-  let  tDate, tType, tAmount, tDetails, bal, tCr, tDb
-  console.log(bank)
+  const fileType = req.body.filetype
+  let  tDate, tType, tAmount, tDetails, bal, tCr, tDb, parser
 
+  if (fileType == 'csv') parser = require(__dirname + '/scripts/csvParser')
+  else parser = require(__dirname + '/scripts/xmlParser')
+  const data = parser()
 
  req.getConnection((err, connection) => {
     if (err) {
@@ -198,7 +203,8 @@ function uploadFiles (req, res) {
     }
     for (let i = 0; i < data.length; i++) {
       if (bank === 'icici') [ , , tDate, chqNo, tDetails, tDb, tCr, bal] = data[i];
-       if (bank === 'federal') [ , tDate, tDetails, , , , , tDb, tCr, bal] = data[i];
+      if (bank === 'federal') [ , tDate, tDetails, , , , , tDb, tCr, bal] = data[i];
+      if (bank === 'axis') [ , tDate, , tDetails, tDb, tCr, bal, ] = data[i];
       if (tDb == 0) {
         tType = 'CREDIT'
         tAmount = tCr
@@ -218,6 +224,7 @@ function uploadFiles (req, res) {
         }
       })
     }
+    res.redirect('/')
   })
 }
 
@@ -265,4 +272,18 @@ function addTx (req, res) {
 
 function updateTo (req, res) {
   const id = req.session.user
+}
+
+function ensureLoggedIn (req, res, next) {
+  if (req.session.user) next()
+  else {
+    res.redirect('/')
+  }
+}
+
+function logout (req, res) {
+  delete req.session
+  req.session.destroy(function () {
+    res.redirect('/')
+  })
 }
