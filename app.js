@@ -107,11 +107,14 @@ function login (req, res) {
             console.log('Connection Error')
             return err
           }
+          console.log(respBody)
           req.session.user = respBody.id
           connection.query('SELECT name FROM userDetails WHERE fbSign = ?',
           respBody.id, function (err, rows) {
             if (rows.length === 0 || rows[0].name === null) {
               connection.query('INSERT INTO login VALUES (?, ?)', [req.session.user, req.session.id])
+              connection.query('INSERT INTO userDetails (fbSign, phone) VALUES (?, ?)',
+              [req.session.user, respBody.phone.national_number])
               var html = Mustache.to_html(loadRegister(), view)
               res.send(html)
             } else {
@@ -155,8 +158,9 @@ function initialize (req, res) {
            }
            else if (rows[0].sID === req.session.id) {
              connection.query(`SELECT * FROM userDetails WHERE fbSign = ?`, id, (err, rows) => {
+               console.log(`-----${rows}-----${rows.length}------`)
                if (rows.length === 0) {
-                 var html = Mustache.to_html(loadRegister(), view)
+                 let html = Mustache.to_html(loadRegister(), view)
                  res.send(html)
                } else {
                  let html = Mustache.to_html(loadHomePage())
@@ -298,19 +302,16 @@ function updateTo (req, res) {
 function userDetails (req, res) {
   const id = req.session.user
   req.getConnection(function (err, connection) {
-    connection.query(`UPDATE login SET sID = null WHERE fbSign = ?`, req.session.user)
-  )}
-       connection.query(`SELECT name, bank FROM userDetails WHERE fbSign = ?`, id, (err, rows) => {
-         if (err) { connectError() }
-         else {
-           res.send({
-             name: rows[0].name,
-             bank: rows[0].bank
-           })
-         }
-       })
-     }
-   })
+    connection.query(`SELECT name, bank FROM userDetails WHERE fbSign = ?`, id, (err, rows) => {
+      if (err) { connectError() }
+      else {
+        res.send({
+          name: rows[0].name,
+          bank: rows[0].bank
+        })
+      }
+    })
+  })
 }
 
 function ensureLoggedIn (req, res, next) {
@@ -324,7 +325,7 @@ function logout (req, res) {
   delete req.session
   req.getConnection(function (err, connection) {
     connection.query(`UPDATE login SET sID = null WHERE fbSign = ?`, req.session.user)
-  )}
+  })
   req.session.destroy(function () {
     res.redirect('/')
   })
