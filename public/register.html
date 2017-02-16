@@ -22,8 +22,12 @@
 		  	<div class="mdl-card__supporting-text">
 		  	<h1 class="mdl-typography--title">EXPENSE APP</h1>
 		  	<h2 class="mdl-typography--subhead">NEW USER REGISTRATION</h2>
-		  	<form id="register_form" name="form" action="/senddata" method="POST">
-		  	<p><strong>ENTER NAME  </strong><input type="text" id="name" name="name"><br/><br/><strong>ENTER BANK  </strong><input type="text" id="bank" name="bank">
+		  	<form id="register_form" name="form" action="/registername" method="POST">
+		  	<p><strong>ENTER NAME  </strong><input type="text" id="name" name="name"><br/><br/><strong>ENTER BANK  </strong><select name='bank'>
+					<option value='icici'>ICICI Bank</option>
+					<option value='federal'>Federal Bank</option>
+					<option value='axis'>Axis Bank</option>
+				</select>
 					<input type="text" name="id" value="{{user_id}}" style="display:none;"></p>
 				<ul class="demo-list-icon mdl-list">
 			  <li class="mdl-list__item">
