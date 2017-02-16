@@ -10,12 +10,13 @@ const Import = React.createClass({
            <form name='form1' method='post' encType='multipart/form-data' action='/upload'>
              <input type='file' name= 'upl' id='file'className='inputfile'/>
                <select name='bank'>
-                 <option value='icici'>ICICI</option>
-                 <option value='federal'>FEDERAL</option>
+                 <option value='icici'>ICICI Bank</option>
+                 <option value='federal'>Federal Bank</option>
+                 <option value='axis'>Axis Bank</option>
                </select>
                <select name='filetype'>
                  <option value='csv'>CSV</option>
-                 <option value='xlxs'>XLXS</option>
+                 <option value='xls'>XLS</option>
                </select>
              <button className='button btn'>Submit</button>
            </form>
