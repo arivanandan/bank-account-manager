@@ -63,7 +63,7 @@ app.post('/senddata', registerName)
 app.get('/gettransaction', ensureLoggedIn, displayTx)
 app.post('/upload', multer({ dest: './uploads/'}).single('upl'), uploadFiles)
 app.post('/addTransaction', addTx)
-app.post('/getdata', updateTo)
+app.post('/updatedata', updateTo)
 app.post('/registername', registerName)
 app.get('/getuserdetails', userDetails)
 app.get('/logout', logout)
@@ -158,7 +158,6 @@ function initialize (req, res) {
            }
            else if (rows[0].sID === req.session.id) {
              connection.query(`SELECT * FROM userDetails WHERE fbSign = ?`, id, (err, rows) => {
-               console.log(`-----${rows}-----${rows.length}------`)
                if (rows.length === 0) {
                  let html = Mustache.to_html(loadRegister(), view)
                  res.send(html)
@@ -167,6 +166,9 @@ function initialize (req, res) {
                  res.send(html)
                }
              })
+           } else {
+             let html = Mustache.to_html(loadLogin(), view)
+             res.send(html)
            }
          })
        }
@@ -242,9 +244,9 @@ function uploadFiles (req, res) {
         'VALUES (?, ?, ?, ?, ?, ?)',
         [fbSign, tDate, tDetails, tAmount, tType, bal], (err, rows) => {
           if (err || rows.affectedRows === 0) { connectError(err) }
+          else res.redirect('/')
         })
       }
-      res.redirect('/')
     }
   })
 }
@@ -286,11 +288,13 @@ function addTx (req, res) {
 
 function updateTo (req, res) {
   const id = req.session.user
-  const [tID, fromAcc, toAcc] = req.body
+  console.log(req.body)
+  let {tID, fromAcc, toAcc} = req.body
+  fromAcc = fromAcc.toLowerCase()
   req.getConnection((err, connection) => {
     if (err) { connectError(err) }
-    connection.query('UPDATE ' + fromAcc + ' SET toAcc = ? ' +
-      'WHERE fbSign = ?', [toAcc, id], (err, rows) => {
+    connection.query('UPDATE ' + fromAcc + ' SET toAcc = ? WHERE fbSign = ?',
+    [toAcc, id], (err, rows) => {
         if (err) { connectError(err) }
         res.redirect('/')
       })
@@ -300,7 +304,7 @@ function updateTo (req, res) {
 function userDetails (req, res) {
   const id = req.session.user
   req.getConnection(function (err, connection) {
-    connection.query(`SELECT name, bank FROM userDetails WHERE fbSign = ?`, id, (err, rows) => {
+    connection.query(`SELECT name, primaryBank FROM userDetails WHERE fbSign = ?`, id, (err, rows) => {
       if (err) { connectError(err) }
       else {
         res.send({
