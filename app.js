@@ -33,14 +33,14 @@ const sessionStore = new MySQLStore(options)
 
 let csrf_guid = Guid.raw()
 const api_version = 'v1.0'
-const app_id = process.env.FB_APP-ID
+const app_id = process.env.FB_APPID
 const app_secret = process.env.FB_SECRET
 const me_endpoint_base_url = 'https://graph.accountkit.com/v1.1/me'
 const token_exchange_base_url = 'https://graph.accountkit.com/v1.1/access_token'
 
 app.use(session({
-  key: SES_KEY,
-  secret: SES_SECRET,
+  key: process.env.SES_KEY,
+  secret: process.env.SES_SECRET,
   genid: req => uuid.v4(),
   cookie: { maxAge: 1000 * 60 * 10 },
   resave: false,
@@ -64,6 +64,8 @@ app.get('/gettransaction', ensureLoggedIn, displayTx)
 app.post('/upload', multer({ dest: './uploads/'}).single('upl'), uploadFiles)
 app.post('/addTransaction', addTx)
 app.post('/updatedate', updateTo)
+app.post('/registername', registerName)
+app.get('/getuserdetails', userDetails)
 app.get('/logout', logout)
 app.get('/', initialize)
 
@@ -106,13 +108,15 @@ function login (req, res) {
             return err
           }
           req.session.user = respBody.id
-          connection.query('SELECT name FROM userDetails WHERE fbSign = ?', respBody.id, function (err, rows) {
+          connection.query('SELECT name FROM userDetails WHERE fbSign = ?',
+          respBody.id, function (err, rows) {
             if (rows.length === 0 || rows[0].name === null) {
-              connection.query('INSERT INTO login VALUES (?, ?)', [respBody.id, req.session.id])
-              connection.query('INSERT INTO userDetails VALUES (?, ?, ?, ?)', [respBody.id, respBody.phone.national_number])
+              connection.query('INSERT INTO login VALUES (?, ?)', [req.session.user, req.session.id])
               var html = Mustache.to_html(loadRegister(), view)
               res.send(html)
             } else {
+              connection.query(`UPDATE login SET sID = ? WHERE fbSign = ?`,
+              [req.session.id, req.session.user])
               let html = Mustache.to_html(loadHomePage(), view)
               res.send(html)
             }
@@ -134,26 +138,50 @@ function getin (req, res) {
 }
 
 function initialize (req, res) {
+  const id = req.session.user
   const view = {
     appId: app_id,
     csrf: csrf_guid,
     version: api_version
   }
   if (req.session.user) {
-    let html = Mustache.to_html(loadHomePage())
-    res.send(html)
-  } else {
-    const html = Mustache.to_html(loadLogin(), view)
-    res.send(html)
-  }
-}
+    req.getConnection((err, connection) => {
+       if (err) { connectError() }
+       else {
+         connection.query(`SELECT sID FROM login WHERE fbSign = ?`, id, (err, rows) => {
+           if (rows.length === 0) {
+             let html = Mustache.to_html(loadLogin(), view)
+             res.send(html)
+           }
+           else if (rows[0].sID === req.session.id) {
+             connection.query(`SELECT * FROM userDetails WHERE fbSign = ?`, id, (err, rows) => {
+               if (rows.length === 0) {
+                 var html = Mustache.to_html(loadRegister(), view)
+                 res.send(html)
+               } else {
+                 let html = Mustache.to_html(loadHomePage())
+                 res.send(html)
+               }
+             })
+           }
+         })
+       }
+     })
+   }
+   else {
+     let html = Mustache.to_html(loadLogin(), view)
+     res.send(html)
+   }
+ }
 
 function registerName (req, res) {
   req.getConnection((err, connection) => {
     if (err) { connectError() }
-  connection.query('UPDATE userDetails SET name = ?, primaryBank = ? WHERE fbSign = ?', [req.body.name, req.body.bank, req.body.id])
-  let html = Mustache.to_html(loadHomePage())
-  res.send(html)
+    else {
+      connection.query('UPDATE userDetails SET name = ?, primaryBank = ? WHERE fbSign = ?', [req.body.name, req.body.bank, req.body.id])
+      let html = Mustache.to_html(loadHomePage())
+      res.send(html)
+    }
   })
 }
 
@@ -267,6 +295,24 @@ function updateTo (req, res) {
   // })
 }
 
+function userDetails (req, res) {
+  const id = req.session.user
+  req.getConnection(function (err, connection) {
+    connection.query(`UPDATE login SET sID = null WHERE fbSign = ?`, req.session.user)
+  )}
+       connection.query(`SELECT name, bank FROM userDetails WHERE fbSign = ?`, id, (err, rows) => {
+         if (err) { connectError() }
+         else {
+           res.send({
+             name: rows[0].name,
+             bank: rows[0].bank
+           })
+         }
+       })
+     }
+   })
+}
+
 function ensureLoggedIn (req, res, next) {
   if (req.session.user) next()
   else {
@@ -276,6 +322,9 @@ function ensureLoggedIn (req, res, next) {
 
 function logout (req, res) {
   delete req.session
+  req.getConnection(function (err, connection) {
+    connection.query(`UPDATE login SET sID = null WHERE fbSign = ?`, req.session.user)
+  )}
   req.session.destroy(function () {
     res.redirect('/')
   })
