@@ -1,7 +1,19 @@
 const React = require('react')
 const {Link, IndexLink} = require('react-router')
+const {getJSON} = require('io-square-browser')
 
 const Nav = React.createClass({
+  componentWillMount: function () {
+    getJSON('/getuserdetails').then((response) => {
+      console.log(response)
+      this.setState(
+        {
+          user: response.name,
+          bank: response.bank
+        }
+      )
+    })
+  },
   render: function () {
     return (
         <div className='top-bar'>
@@ -13,6 +25,12 @@ const Nav = React.createClass({
               <li><Link to='/addtransaction' activeClassName='active' activeStyle={{fontWeight: 'bold'}}>Add Transaction</Link></li>
              </ul>
           </div>
+            <div className='top-bar-right'>
+              <ul className='menu'>
+                <li className='menu-text'>Pooja,</li>
+                <li>bank</li>
+              </ul>
+            </div>
         </div>
       )
   }
