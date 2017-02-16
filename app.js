@@ -63,7 +63,7 @@ app.post('/senddata', registerName)
 app.get('/gettransaction', ensureLoggedIn, displayTx)
 app.post('/upload', multer({ dest: './uploads/'}).single('upl'), uploadFiles)
 app.post('/addTransaction', addTx)
-app.post('/updatedate', updateTo)
+app.post('/getdata', updateTo)
 app.post('/registername', registerName)
 app.get('/getuserdetails', userDetails)
 app.get('/logout', logout)
@@ -149,7 +149,7 @@ function initialize (req, res) {
   }
   if (req.session.user) {
     req.getConnection((err, connection) => {
-       if (err) { connectError() }
+       if (err) { connectError(err) }
        else {
          connection.query(`SELECT sID FROM login WHERE fbSign = ?`, id, (err, rows) => {
            if (rows.length === 0) {
@@ -180,7 +180,7 @@ function initialize (req, res) {
 
 function registerName (req, res) {
   req.getConnection((err, connection) => {
-    if (err) { connectError() }
+    if (err) { connectError(err) }
     else {
       connection.query('UPDATE userDetails SET name = ?, primaryBank = ? WHERE fbSign = ?', [req.body.name, req.body.bank, req.body.id])
       let html = Mustache.to_html(loadHomePage())
@@ -192,7 +192,7 @@ function registerName (req, res) {
 function displayTx (req, res) {
   const id = req.session.user
   req.getConnection((err, connection) => {
-    if (err) { connectError() }
+    if (err) { connectError(err) }
     else {
       connection.query(`SELECT * FROM icici WHERE fbSign = ?
         UNION
@@ -225,7 +225,7 @@ function uploadFiles (req, res) {
   const data = parser()
 
  req.getConnection((err, connection) => {
-    if (err) { connectError() }
+    if (err) { connectError(err) }
     else {
       for (let i = 0; i < data.length; i++) {
         if (bank === 'icici') [ , , tDate, chqNo, tDetails, tDb, tCr, bal] = data[i];
@@ -241,7 +241,7 @@ function uploadFiles (req, res) {
         connection.query('INSERT INTO ' + bank + ' (fbSign, tDate, tDetails, tAmount, tType, bal)' +
         'VALUES (?, ?, ?, ?, ?, ?)',
         [fbSign, tDate, tDetails, tAmount, tType, bal], (err, rows) => {
-          if (err || rows.affectedRows === 0) { connectError() }
+          if (err || rows.affectedRows === 0) { connectError(err) }
         })
       }
       res.redirect('/')
@@ -262,7 +262,7 @@ function addTx (req, res) {
     connection.query(`SELECT bal FROM transactions WHERE fbSign = ?
       ORDER BY tID DESC LIMIT 1`,
     fbSign, (err, rows) => {
-      if (err) { connectError() }
+      if (err) { connectError(err) }
       console.log(rows)
       if (rows.length !== 0) bal = parseInt(rows[0].bal)
       if (tType == 'CREDIT' || tType == 'credit') {
@@ -278,32 +278,30 @@ function addTx (req, res) {
       connection.query(`INSERT INTO transactions (fbSign, tDate, fromAcc, toAcc, tType, tAmount, tDetails, bal)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [fbSign, tDate, fromAcc, toAcc, tType, tAmount, tDetails, bal], (err, rows) => {
-        if (err || rows.affectedRows === 0) { connectError() }
+        if (err || rows.affectedRows === 0) { connectError(err) }
       })
     })
   })
 }
 
 function updateTo (req, res) {
-  // const id = req.session.user
-  // req.getConnection((err, connection) => {
-  //   if (err) {
-  //     console.log('Connection Error')
-  //     return err
-  //   }
-  //   connection.query(`UPDATE userDetails SET name = ?, primaryBank = ?
-  //     WHERE fbSign = ?`, [id, name, bank], (err, rows) => {
-  //       if (err) { connectError() }
-  //       res.redirect('/')
-  //     })
-  // })
+  const id = req.session.user
+  const [tID, fromAcc, toAcc] = req.body
+  req.getConnection((err, connection) => {
+    if (err) { connectError(err) }
+    connection.query('UPDATE ' + fromAcc + ' SET toAcc = ? ' +
+      'WHERE fbSign = ?', [toAcc, id], (err, rows) => {
+        if (err) { connectError(err) }
+        res.redirect('/')
+      })
+  })
 }
 
 function userDetails (req, res) {
   const id = req.session.user
   req.getConnection(function (err, connection) {
     connection.query(`SELECT name, bank FROM userDetails WHERE fbSign = ?`, id, (err, rows) => {
-      if (err) { connectError() }
+      if (err) { connectError(err) }
       else {
         res.send({
           name: rows[0].name,
@@ -331,7 +329,7 @@ function logout (req, res) {
   })
 }
 
-function connectError () {
+function connectError (err) {
   console.log('Connection Error. Please try again later.')
   return err
 }
