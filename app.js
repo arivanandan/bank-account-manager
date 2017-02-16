@@ -244,7 +244,10 @@ function uploadFiles (req, res) {
         'VALUES (?, ?, ?, ?, ?, ?)',
         [fbSign, tDate, tDetails, tAmount, tType, bal], (err, rows) => {
           if (err || rows.affectedRows === 0) { connectError(err) }
-          else res.redirect('/')
+          else {
+            let html = Mustache.to_html(loadHomePage())
+            res.send(html)
+          }
         })
       }
     }
@@ -288,15 +291,17 @@ function addTx (req, res) {
 
 function updateTo (req, res) {
   const id = req.session.user
-  console.log(req.body)
   let {tID, fromAcc, toAcc} = req.body
   fromAcc = fromAcc.toLowerCase()
   req.getConnection((err, connection) => {
     if (err) { connectError(err) }
-    connection.query('UPDATE ' + fromAcc + ' SET toAcc = ? WHERE fbSign = ?',
-    [toAcc, id], (err, rows) => {
+    connection.query('UPDATE ' + fromAcc + ' SET toAcc = ? WHERE fbSign = ? AND tID = ?',
+    [toAcc, id, tID], (err, rows) => {
         if (err) { connectError(err) }
-        res.redirect('/')
+        else {
+          let html = Mustache.to_html(loadHomePage())
+          res.send(html)
+        }
       })
   })
 }
@@ -319,7 +324,7 @@ function userDetails (req, res) {
 function ensureLoggedIn (req, res, next) {
   if (req.session.user) next()
   else {
-    res.redirect('/')
+    // res.redirect('/')
   }
 }
 
