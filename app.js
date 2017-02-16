@@ -63,7 +63,7 @@ app.post('/senddata', registerName)
 app.get('/gettransaction', ensureLoggedIn, displayTx)
 app.post('/upload', multer({ dest: './uploads/'}).single('upl'), uploadFiles)
 app.post('/addTransaction', addTx)
-app.post('/getdata', updateTo)
+app.post('/updatedata', updateTo)
 app.post('/registername', registerName)
 app.get('/getuserdetails', userDetails)
 app.get('/logout', logout)
@@ -286,7 +286,9 @@ function addTx (req, res) {
 
 function updateTo (req, res) {
   const id = req.session.user
-  const [tID, fromAcc, toAcc] = req.body
+  console.log(req.body)
+  let [tID, fromAcc, toAcc] = req.body;
+  fromAcc = fromAcc.toLowerCase()
   req.getConnection((err, connection) => {
     if (err) { connectError(err) }
     connection.query('UPDATE ' + fromAcc + ' SET toAcc = ? ' +
@@ -299,13 +301,16 @@ function updateTo (req, res) {
 
 function userDetails (req, res) {
   const id = req.session.user
+  console.log('adafefreyeyruy', id)
   req.getConnection(function (err, connection) {
-    connection.query(`SELECT name, bank FROM userDetails WHERE fbSign = ?`, id, (err, rows) => {
-      if (err) { connectError(err) }
+    connection.query(`SELECT name, primaryBank FROM userDetails WHERE fbSign = ?`, id, (err, rows) => {
+            if (err) {
+              console.log("inside if")
+               connectError(err)  }
       else {
         res.send({
           name: rows[0].name,
-          bank: rows[0].bank
+          bank: rows[0].primaryBank
         })
       }
     })

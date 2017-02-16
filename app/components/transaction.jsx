@@ -4,10 +4,11 @@ const {postJSON} = require('io-square-browser')
 const Transaction = React.createClass({
   handleSelect: function (e) {
     let toAcc = this.refs.toAcc.value
-    let {tID} = this.props
+    let {tID, fromAcc} = this.props
     let obj = {
       tID : tID,
-      toAcc: toAcc
+      toAcc: toAcc,
+      fromAcc: fromAcc
     }
     console.log(obj)
     postJSON('/updatedata', obj).then((response) => {
