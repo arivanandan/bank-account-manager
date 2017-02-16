@@ -9,7 +9,10 @@ const Transaction = React.createClass({
       tID : tID,
       toAcc: toAcc
     }
-    postJSON('/updatedata', obj)
+    console.log(obj)
+    postJSON('/updatedata', obj).then((response) => {
+      console.log('in')
+    })
   },
   render: function () {
     let {tDate, tDetails, tAmount, bal, toAcc, fromAcc, tType} = this.props
@@ -25,7 +28,7 @@ const Transaction = React.createClass({
     let renderToAcc = () => {
       if (!toAcc) {
         return (
-             <div className='small-9 columns'>
+             <div className='small-6 columns'>
              <select ref='toAcc' name='toAcc' onChange={this.handleSelect}>
               <option value='bank'>Bank</option>
               <option value='cash'>Cash</option>
@@ -38,7 +41,7 @@ const Transaction = React.createClass({
         )
       }
       return (
-          <div className='small-9 columns'>
+          <div className='small-6 columns' style={{paddingTop: '1.5%'}}>
           {toAcc}
         </div>
       )
@@ -62,11 +65,11 @@ const Transaction = React.createClass({
             </div>
             <br/>
             <div className='row'>
-              <div className='small-3 columns'>
+              <div className='small-6 columns'>
                 <label htmlFor='toAcc' className='text-right middle'><strong>To account</strong></label>
-              </div>
-                {renderToAcc()}
-            </div>
+             </div>
+              {renderToAcc()}
+          </div>
             <div className='row'>
               <div className='small-12 columns'>
                 Balance: {bal}
