@@ -150,10 +150,7 @@ function initialize (req, res) {
 
 function registerName (req, res) {
   req.getConnection((err, connection) => {
-    if (err) {
-      console.log('Connection Error')
-      return err
-    }
+    if (err) { connectError() }
   connection.query('UPDATE userDetails SET name = ?, primaryBank = ? WHERE fbSign = ?', [req.body.name, req.body.bank, req.body.id])
   let html = Mustache.to_html(loadHomePage())
   res.send(html)
@@ -163,26 +160,25 @@ function registerName (req, res) {
 function displayTx (req, res) {
   const id = req.session.user
   req.getConnection((err, connection) => {
-    if (err) {
-      console.log('Connection Error')
-      return err
-    }
-    connection.query(`SELECT * FROM icici WHERE fbSign = ?
-      UNION
-      SELECT * FROM transactions WHERE fbSign = ?
-      `, [id, id], (err, rows) => {
-      if (err) {
-        console.log('Connection error. Pleas try again later')
-        return null
-      }
-      if (rows.length === 0) {
-        console.log('No transaction data available')
-        return null
-      }
-      res.send({
-        transactions: rows
+    if (err) { connectError() }
+    else {
+      connection.query(`SELECT * FROM icici WHERE fbSign = ?
+        UNION
+        SELECT * FROM transactions WHERE fbSign = ?
+        `, [id, id], (err, rows) => {
+        if (err) {
+          console.log('Connection error. Pleas try again later')
+          return null
+        }
+        if (rows.length === 0) {
+          console.log('No transaction data available')
+          return null
+        }
+        res.send({
+          transactions: rows
+        })
       })
-    })
+    }
   })
 }
 
@@ -197,34 +193,27 @@ function uploadFiles (req, res) {
   const data = parser()
 
  req.getConnection((err, connection) => {
-    if (err) {
-      console.log('Connection Error')
-      return err
-    }
-    for (let i = 0; i < data.length; i++) {
-      if (bank === 'icici') [ , , tDate, chqNo, tDetails, tDb, tCr, bal] = data[i];
-      if (bank === 'federal') [ , tDate, tDetails, , , , , tDb, tCr, bal] = data[i];
-      if (bank === 'axis') [ , tDate, , tDetails, tDb, tCr, bal, ] = data[i];
-      if (tDb == 0) {
-        tType = 'CREDIT'
-        tAmount = tCr
-      } else {
-        tType = 'DEBIT'
-        tAmount = tDb
-      }
-      if (tDetails.substr(0, 3) === 'ATM' || tDetails.substr(0, 3) === 'NFS') tType = 'CREDIT'
-      console.log(fbSign, tDate, tDetails, tAmount, tType, bal)
-      connection.query('INSERT INTO ' + bank + ' (fbSign, tDate, tDetails, tAmount, tType, bal)' +
-      'VALUES (?, ?, ?, ?, ?, ?)',
-      [fbSign, tDate, tDetails, tAmount, tType, bal], (err, rows) => {
-        if (err || rows.affectedRows === 0) {
-          console.log('Connection Error. Please try again later.')
-          console.log(err)
-          return null
+    if (err) { connectError() }
+    else {
+      for (let i = 0; i < data.length; i++) {
+        if (bank === 'icici') [ , , tDate, chqNo, tDetails, tDb, tCr, bal] = data[i];
+        if (bank === 'federal') [ , tDate, tDetails, , , , , tDb, tCr, bal] = data[i];
+        if (bank === 'axis') [ , tDate, , tDetails, tDb, tCr, bal, ] = data[i];
+        if (tDb == 0) {
+          tType = 'CREDIT'
+          tAmount = tCr
+        } else {
+          tType = 'DEBIT'
+          tAmount = tDb
         }
-      })
+        connection.query('INSERT INTO ' + bank + ' (fbSign, tDate, tDetails, tAmount, tType, bal)' +
+        'VALUES (?, ?, ?, ?, ?, ?)',
+        [fbSign, tDate, tDetails, tAmount, tType, bal], (err, rows) => {
+          if (err || rows.affectedRows === 0) { connectError() }
+        })
+      }
+      res.redirect('/')
     }
-    res.redirect('/')
   })
 }
 
@@ -241,10 +230,7 @@ function addTx (req, res) {
     connection.query(`SELECT bal FROM transactions WHERE fbSign = ?
       ORDER BY tID DESC LIMIT 1`,
     fbSign, (err, rows) => {
-      if (err) {
-        console.log('Connection Error. Please try again later.')
-        return err
-      }
+      if (err) { connectError() }
       console.log(rows)
       if (rows.length !== 0) bal = parseInt(rows[0].bal)
       if (tType == 'CREDIT' || tType == 'credit') {
@@ -260,18 +246,25 @@ function addTx (req, res) {
       connection.query(`INSERT INTO transactions (fbSign, tDate, fromAcc, toAcc, tType, tAmount, tDetails, bal)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [fbSign, tDate, fromAcc, toAcc, tType, tAmount, tDetails, bal], (err, rows) => {
-        if (err || rows.affectedRows === 0) {
-          console.log('Connection Error. Please try again later.')
-          console.log(err)
-          return null
-        }
+        if (err || rows.affectedRows === 0) { connectError() }
       })
     })
   })
 }
 
 function updateTo (req, res) {
-  const id = req.session.user
+  // const id = req.session.user
+  // req.getConnection((err, connection) => {
+  //   if (err) {
+  //     console.log('Connection Error')
+  //     return err
+  //   }
+  //   connection.query(`UPDATE userDetails SET name = ?, primaryBank = ?
+  //     WHERE fbSign = ?`, [id, name, bank], (err, rows) => {
+  //       if (err) { connectError() }
+  //       res.redirect('/')
+  //     })
+  // })
 }
 
 function ensureLoggedIn (req, res, next) {
@@ -286,4 +279,9 @@ function logout (req, res) {
   req.session.destroy(function () {
     res.redirect('/')
   })
+}
+
+function connectError () {
+  console.log('Connection Error. Please try again later.')
+  return err
 }
