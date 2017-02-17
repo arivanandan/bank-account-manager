@@ -10,26 +10,22 @@ const Transaction = React.createClass({
       toAcc: toAcc,
       fromAcc: fromAcc
     }
-    console.log(obj)
     postJSON('/updatedata', obj).then((response) => {
-      console.log('in')
+      window.location.hash = '#/upload'
     })
   },
   render: function () {
     let {tDate, tDetails, tAmount, bal, toAcc, fromAcc, tType} = this.props
-    let clr
     let type
     if (tType == 'credit' || tType == 'CREDIT') {
-      clr = '#2AC24F'
       type = 'Cr'
     } else {
-      clr = '#F8421E'
       type = 'Db'
     }
     let renderToAcc = () => {
       if (!toAcc) {
         return (
-             <div className='small-6 columns'>
+          <div className='small-4 columns'>
              <select ref='toAcc' name='toAcc' onChange={this.handleSelect}>
               <option value='bank'>Bank</option>
               <option value='cash'>Cash</option>
@@ -42,42 +38,36 @@ const Transaction = React.createClass({
         )
       }
       return (
-          <div className='small-6 columns' style={{paddingTop: '1.5%'}}>
+        <div className='small-4 columns' style={{paddingTop: '1.5%'}}>
           {toAcc}
         </div>
-      )
+     )
     }
     return (
       <div className='card box-style' style={{width: '100%', paddingTop: '0.5%'}} >
         <div className='card-section'>
-            <div className='row align-spaced'>
-              <div className='large-4 columns'>
+            <div className='row' style={{fontSize: '25px'}}>
+              <div className='large-3 columns' style={{textAlign: 'center'}}>
                 {tDate}
               </div>
-              <div className='large-4 columns'>
-                Detail: {tDetails}
+              <div className='large-6 columns' style={{textAlign: 'center'}}>
+                {tDetails}
               </div>
-              <div className='large-2 columns'>
-                {type}
-              </div>
-              <div className='large-2 columns'>
-                Amount: {tAmount}
+              <div className='large-3 columns' style={{textAlign: 'center'}}>
+              {tAmount} {type}
               </div>
             </div>
-            <br/>
-            <div className='row'>
-              <div className='small-6 columns'>
-                <label htmlFor='toAcc' className='text-right middle'><strong>To account</strong></label>
-             </div>
-              {renderToAcc()}
-          </div>
-            <div className='row'>
-              <div className='small-12 columns'>
-                Balance: {bal}
+            <div className='row' style={{paddingTop: '3%', fontSize: '20px'}}>
+                  <div className='small-2 columns' style={{textAlign: 'left'}}>
+                    <label htmlFor='toAcc' className='text-right middle'><strong>To account</strong></label>
+                 </div>
+                  {renderToAcc()}
+                  <div className='small-6 columns' style={{textAlign: 'right'}}>
+                    Balance: {bal}
+                  </div>
               </div>
-            </div>
           </div>
-      </div>
+        </div>
     )
   }
 })

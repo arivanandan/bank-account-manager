@@ -4,8 +4,7 @@ const {getJSON} = require('io-square-browser')
 
 const Nav = React.createClass({
   componentWillMount: function () {
-    console.log('inside')
-    getJSON('/getuserdetails').then((response) => {
+      getJSON('/getuserdetails').then((response) => {
       console.log(response.name,response.bank)
       this.setState({
           user : response.name,
@@ -15,13 +14,11 @@ const Nav = React.createClass({
   },
   render: function () {
     if(!this.state){
-      console.log("called")
       return (
         <div>
-
         <p>loading</p>
-</div>
-    )
+        </div>
+      )
     }
     return (
         <div className='top-bar'>
@@ -35,7 +32,7 @@ const Nav = React.createClass({
           </div>
             <div className='top-bar-right'>
               <ul className='menu'>
-                <li className='menu-text'>{this.state.user}</li>
+                <li className='menu-text'>{this.state.user},</li>
                 <li>{this.state.bank}</li>
               </ul>
             </div>
