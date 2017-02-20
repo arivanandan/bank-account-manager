@@ -11,7 +11,7 @@ const Transaction = React.createClass({
       fromAcc: fromAcc
     }
     postJSON('/updatedata', obj).then((response) => {
-      window.location.hash = '#/upload'
+      //window.location.hash = '#/upload'
     })
   },
   render: function () {
@@ -46,24 +46,24 @@ const Transaction = React.createClass({
     return (
       <div className='card box-style' style={{width: '100%', paddingTop: '0.5%'}} >
         <div className='card-section'>
-            <div className='row' style={{fontSize: '25px'}}>
+            <div className='row' style={{fontSize: '18px'}}>
               <div className='large-3 columns' style={{textAlign: 'center'}}>
                 {tDate}
               </div>
-              <div className='large-6 columns' style={{textAlign: 'center'}}>
+              <div className='large-6 columns' style={{textAlign: 'center', wordWrap:'break-word'}}>
                 {tDetails}
               </div>
               <div className='large-3 columns' style={{textAlign: 'center'}}>
               {tAmount} {type}
               </div>
             </div>
-            <div className='row' style={{paddingTop: '3%', fontSize: '20px'}}>
+            <div className='row' style={{paddingTop: '3%', fontSize: '15px'}}>
                   <div className='small-2 columns' style={{textAlign: 'left'}}>
                     <label htmlFor='toAcc' className='text-right middle'><strong>To account</strong></label>
                  </div>
                   {renderToAcc()}
                   <div className='small-6 columns' style={{textAlign: 'right'}}>
-                    Balance: {bal}
+                    <strong>Balance: {bal}</strong>
                   </div>
               </div>
           </div>

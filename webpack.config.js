@@ -29,6 +29,7 @@ module.exports = {
       Transaction: 'app/components/transaction.jsx',
       Upload: 'app/components/upload.jsx',
       AddTransaction: 'app/components/addtransaction.jsx',
+      Logout: 'app/components/logout.jsx',
       applicationStyles: 'app/styles/app.scss'
     },
     extensions: ['', '.js', '.jsx']

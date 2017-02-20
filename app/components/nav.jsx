@@ -34,6 +34,7 @@ const Nav = React.createClass({
               <ul className='menu'>
                 <li className='menu-text'>{this.state.user},</li>
                 <li>{this.state.bank}</li>
+                  <li><Link to='/logout' activeClassName='active' activeStyle={{fontWeight: 'bold'}}>Logout</Link></li>
               </ul>
             </div>
         </div>

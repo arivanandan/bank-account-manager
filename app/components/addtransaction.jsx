@@ -61,7 +61,11 @@ const AddTransaction = React.createClass({
              </select>
            </div>
           </div>
-          <button className='button expanded btn'>Submit</button>
+          <div className='row'>
+           <div className='small-12 columns' style={{paddingLeft: '50%'}}>
+          <button className='button btn'>Submit</button>
+          </div>
+        </div>
         </form>
       </div>
     )

@@ -66,7 +66,7 @@ app.post('/addTransaction', addTx)
 app.post('/updatedata', updateTo)
 app.post('/registername', registerName)
 app.get('/getuserdetails', userDetails)
-app.get('/logout', logout)
+app.post('/logout', logout)
 app.get('/', initialize)
 
 app.listen(3000, () => console.log('Listening at port 3k'))
@@ -169,6 +169,7 @@ function initialize (req, res) {
            } else {
              let html = Mustache.to_html(loadLogin(), view)
              res.send(html)
+
            }
          })
        }
@@ -196,10 +197,12 @@ function displayTx (req, res) {
   req.getConnection((err, connection) => {
     if (err) { connectError(err) }
     else {
-      connection.query(`SELECT * FROM icici WHERE fbSign = ?
+      connection.query(`SELECT * FROM axis WHERE fbSign = ?
         UNION
-        SELECT * FROM transactions WHERE fbSign = ?
-        `, [id, id], (err, rows) => {
+        SELECT * FROM icici WHERE fbSign = ?
+        UNION
+        SELECT * FROM federal WHERE fbSign = ?
+        `, [id, id, id], (err, rows) => {
         if (err) {
           console.log('Connection error. Pleas try again later')
           return null
@@ -245,8 +248,8 @@ function uploadFiles (req, res) {
         [fbSign, tDate, tDetails, tAmount, tType, bal], (err, rows) => {
           if (err || rows.affectedRows === 0) { connectError(err) }
           else {
-            let html = Mustache.to_html(loadHomePage())
-            res.send(html)
+            //let html = Mustache.to_html(loadHomePage())
+            //res.send(html)
           }
         })
       }
@@ -299,8 +302,8 @@ function updateTo (req, res) {
     [toAcc, id, tID], (err, rows) => {
         if (err) { connectError(err) }
         else {
-          let html = Mustache.to_html(loadHomePage())
-          res.send(html)
+          //let html = Mustache.to_html(loadHomePage())
+          //res.send(html)
         }
       })
   })
@@ -312,9 +315,9 @@ function userDetails (req, res) {
     connection.query(`SELECT name, primaryBank FROM userDetails WHERE fbSign = ?`, id, (err, rows) => {
       if (err) { connectError(err) }
       else {
-        res.send({
+          res.send({
           name: rows[0].name,
-          bank: rows[0].bank
+          bank: rows[0].primaryBank
         })
       }
     })
@@ -329,7 +332,8 @@ function ensureLoggedIn (req, res, next) {
 }
 
 function logout (req, res) {
-  delete req.session
+  console.log('inside')
+  //delete req.session
   req.getConnection(function (err, connection) {
     connection.query(`UPDATE login SET sID = null WHERE fbSign = ?`, req.session.user)
   })

@@ -5,7 +5,7 @@ const Main = require('Main')
 const Upload = require('Upload')
 const TMain = require('TMain')
 const AddTransaction = require('AddTransaction')
-
+const Logout = require('Logout')
 // load foundation
 require('style!css!foundation-sites/dist/css/foundation.min.css')
 $(document).foundation()
@@ -18,6 +18,7 @@ ReactDOM.render(
   <Route path='/' component={Main}>
   <Route path='upload' component={Upload}/>
   <Route path='addtransaction' component={AddTransaction}/>
+  <Route path='logout' component={Logout}/>
   <IndexRoute component={TMain}/>
   </Route>
 </Router>,
