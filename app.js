@@ -338,7 +338,7 @@ function logout (req, res) {
     connection.query(`UPDATE login SET sID = null WHERE fbSign = ?`, req.session.user)
   })
   req.session.destroy(function () {
-    res.redirect('/')
+    res.redirect('#/')
   })
 }
 

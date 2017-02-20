@@ -1,16 +1,20 @@
 const React = require('react')
 
 const Import = React.createClass({
+  change: function (res) {
+    window.location.hash = '#/'
+  },
   render: function () {
     return (
       <div>
-           <form name='form1' method='post' encType='multipart/form-data' action='/upload'>
+           <form name='form1' method='post' encType='multipart/form-data' action='/upload' onSubmit={this.change}>
                <div className='row'>
                 <div className='small-3 columns'>
                   <label htmlFor='bank' className='text-right middle'><strong>Bank</strong></label>
                 </div>
                 <div className='small-9 columns'>
                <select name='bank'>
+                 <option defaultValue='select'>Choose bank</option>
                  <option value='icici'>ICICI Bank</option>
                  <option value='federal'>Federal Bank</option>
                  <option value='axis'>Axis Bank</option>
@@ -23,6 +27,7 @@ const Import = React.createClass({
               </div>
                 <div className='small-9 columns'>
                <select name='filetype'>
+                 <option defaultValue='select'>Choose file type</option>
                  <option value='csv'>CSV</option>
                  <option value='xls'>XLS</option>
                </select>
@@ -30,7 +35,7 @@ const Import = React.createClass({
              </div>
              <div className='row'>
               <div className='small-12 columns' style={{paddingLeft: '40%'}}>
-               <input type='file' name= 'upl' id='file'className='inputfile'/>
+               <input type='file' name= 'upl' id='file' className='inputfile'/>
                </div>
              </div>
              <div className='row'>
@@ -38,7 +43,7 @@ const Import = React.createClass({
              <button className='button btn'>Submit</button>
              </div>
            </div>
-           </form>
+          </form>
          </div>
     )
   }

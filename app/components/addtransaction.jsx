@@ -1,10 +1,13 @@
 const React = require('react')
 
 const AddTransaction = React.createClass({
+  change: function (res) {
+    window.location.hash = '#/'
+  },
   render: function () {
     return (
       <div>
-        <form name='addtransaction' method='POST' action='/addTransaction'>
+        <form name='addtransaction' method='POST' action='/addTransaction' onSubmit={this.change}>
           <div className='row'>
            <div className='small-3 columns'>
              <label htmlFor='tDate' className='text-right middle'>Date of transaction</label>
