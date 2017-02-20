@@ -196,10 +196,12 @@ function displayTx (req, res) {
   req.getConnection((err, connection) => {
     if (err) { connectError(err) }
     else {
-      connection.query(`SELECT * FROM icici WHERE fbSign = ?
+      connection.query(`SELECT * FROM axis WHERE fbSign = ?
         UNION
-        SELECT * FROM transactions WHERE fbSign = ?
-        `, [id, id], (err, rows) => {
+        SELECT * FROM icici WHERE fbSign = ?
+        UNION
+        SELECT * FROM federal WHERE fbSign = ?
+        `, [id, id, id], (err, rows) => {
         if (err) {
           console.log('Connection error. Pleas try again later')
           return null
@@ -230,7 +232,7 @@ function uploadFiles (req, res) {
     if (err) { connectError(err) }
     else {
       for (let i = 0; i < data.length; i++) {
-        if (bank === 'icici') [ , , tDate, chqNo, tDetails, tDb, tCr, bal] = data[i];
+        if (bank === 'icici') [ , , tDate, , tDetails, tDb, tCr, bal] = data[i];
         if (bank === 'federal') [ , tDate, tDetails, , , , , tDb, tCr, bal] = data[i];
         if (bank === 'axis') [ , tDate, , tDetails, tDb, tCr, bal, ] = data[i];
         if (tDb == 0) {
@@ -324,7 +326,7 @@ function userDetails (req, res) {
 function ensureLoggedIn (req, res, next) {
   if (req.session.user) next()
   else {
-    // res.redirect('/')
+    res.redirect('/')
   }
 }
 
