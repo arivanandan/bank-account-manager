@@ -299,8 +299,7 @@ function updateTo (req, res) {
     [toAcc, id, tID], (err, rows) => {
         if (err) { connectError(err) }
         else {
-          //let html = Mustache.to_html(loadHomePage())
-          //res.send(html)
+          res.send({message : 'SUCCESS'})
         }
       })
   })

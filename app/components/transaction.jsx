@@ -1,5 +1,6 @@
 const React = require('react')
 const {postJSON} = require('io-square-browser')
+const {hashHistory} = require('react-router')
 
 const Transaction = React.createClass({
   handleSelect: function (e) {
@@ -10,8 +11,8 @@ const Transaction = React.createClass({
       toAcc: toAcc,
       fromAcc: fromAcc
     }
-    postJSON('/updatedata', obj).then((response) => {
-      //window.location.hash = '#/upload'
+    postJSON('/updatedata', obj).then((...a) => {
+      this.props.getUserData()
     })
   },
   render: function () {
