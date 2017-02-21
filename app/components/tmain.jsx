@@ -3,6 +3,13 @@ const TransactionList = require('TransactionList')
 const {getJSON} = require('io-square-browser')
 
 const TMain = React.createClass({
+  componentDidUpdate: function () {
+    getJSON('/gettransaction').then((response) => {
+      this.setState(
+        {transactions: response.transactions}
+      )
+    })
+  },
   componentWillMount: function () {
     getJSON('/gettransaction').then((response) => {
       this.setState(
