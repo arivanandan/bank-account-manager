@@ -3,19 +3,22 @@ const TransactionList = require('TransactionList')
 const {getJSON} = require('io-square-browser')
 
 const TMain = React.createClass({
-  componentDidUpdate: function () {
-    getJSON('/gettransaction').then((response) => {
+  // componentDidUpdate: function () {
+  //   getJSON('/gettransaction').then((response) => {
+  //     this.setState(
+  //       {transactions: response.transactions}
+  //     )
+  //   })
+  // },
+  getUserData: function(){
+     getJSON('/gettransaction').then((response) => {
       this.setState(
         {transactions: response.transactions}
       )
     })
   },
-  componentWillMount: function () {
-    getJSON('/gettransaction').then((response) => {
-      this.setState(
-        {transactions: response.transactions}
-      )
-    })
+  componentDidMount: function () {
+   this.getUserData()
   },
   render: function () {
     // console.log(this.state)
@@ -27,7 +30,7 @@ const TMain = React.createClass({
     let {transactions} = this.state
     return (
       <div>
-        <TransactionList transactions={transactions}/>
+        <TransactionList transactions={transactions} getUserData={this.getUserData}/>
       </div>
     )
   }

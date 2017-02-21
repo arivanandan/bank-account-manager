@@ -7,7 +7,7 @@ const TransactionList = React.createClass({
     let renderTransactions = () => {
       return transactions.map((transaction) => {
         return (
-          <Transaction key={transaction.tID} {...transaction}/>
+          <Transaction key={transaction.tID} {...transaction} getUserData={this.props.getUserData}/>
         )
       })
     }
