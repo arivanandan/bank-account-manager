@@ -32,7 +32,7 @@ const con = connection(mysql, options)
 const sessionStore = new MySQLStore(options)
 
 let csrf_guid = Guid.raw()
-const api_version = 'v1.0'
+const api_version = 'v1.1'
 const app_id = process.env.FB_APPID
 const app_secret = process.env.FB_SECRET
 const me_endpoint_base_url = 'https://graph.accountkit.com/v1.1/me'
@@ -77,16 +77,13 @@ loadRegister = () => fs.readFileSync('public/register.html').toString()
 loadHomePage = () => fs.readFileSync('public/home.html').toString()
 
 function login (req, res) {
-  // CSRF check
   if (req.body.csrf_nonce === csrf_guid) {
     var app_access_token = ['AA', app_id, app_secret].join('|')
     var params = {
       grant_type: 'authorization_code',
       code: req.body.code,
       access_token: app_access_token
-      // appsecret_proof: app_secret
     }
-    // exchange tokens
     let token_exchange_url = token_exchange_base_url + '?' + Querystring.stringify(params)
     Request.get({url: token_exchange_url, json: true}, function (err, resp, respBody) {
       var view = {
@@ -94,24 +91,24 @@ function login (req, res) {
         expires_at: respBody.expires_at,
         user_id: respBody.id
       }
-      // get account details at /me endpoint
+
       let me_endpoint_url = me_endpoint_base_url + '?access_token=' + respBody.access_token
       Request.get({url: me_endpoint_url, json: true }, function (err, resp, respBody) {
-        // send login_success.html
+        console.log(respBody)
         if (respBody.phone) {
           view.method = 'SMS'
           view.identity = respBody.phone.number
         }
+
         req.getConnection((err, connection) => {
           if (err) {
             console.log('Connection Error')
             return err
           }
-          console.log(respBody)
           req.session.user = respBody.id
           connection.query('SELECT name FROM userDetails WHERE fbSign = ?',
           respBody.id, function (err, rows) {
-            if (rows.length === 0 || rows[0].name === null) {
+            if (rows === '' || rows.length === 0) {
               connection.query('INSERT INTO login VALUES (?, ?)', [req.session.user, req.session.id])
               connection.query('INSERT INTO userDetails (fbSign, phone) VALUES (?, ?)',
               [req.session.user, respBody.phone.national_number])
