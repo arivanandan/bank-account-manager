@@ -1,0 +1,55 @@
+#graph {
+  width: 350px;
+  height: 350px;
+  transform: rotate(-90deg);
+  background: white;
+  border-radius: 50%;
+};
+
+@keyframes fillup {
+  from { stroke-dasharray: 0 100; }
+};
+
+@keyframes movein {
+  from {opacity: 0}
+  to {opacity: 1}
+}
+
+#circle1 {
+  fill-opacity: 0;
+  stroke: #90d581;
+  stroke-width: 32;
+  animation: fillup 2s linear;
+};
+
+#circle2 {
+  stroke: #8190d5;
+  stroke-width: 32;
+  fill-opacity: 0;
+  animation: fillup 2s linear;
+};
+
+#circle3 {
+  stroke: #d58185;
+  stroke-width: 32;
+  fill-opacity: 0;
+  animation: fillup 2s linear;
+};
+
+#rect1 {
+  fill: #90d581;
+};
+
+#rect2 {
+  fill: #8190d5;
+};
+
+#rect3 {
+  fill: #d58185;
+};
+
+#legenDiv {
+  float: right;
+  margin-right: 30%;
+  animation: movein 3s linear;
+};

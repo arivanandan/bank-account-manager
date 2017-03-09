@@ -3,13 +3,6 @@ const TransactionList = require('TransactionList')
 const {getJSON} = require('io-square-browser')
 
 const TMain = React.createClass({
-  // componentDidUpdate: function () {
-  //   getJSON('/gettransaction').then((response) => {
-  //     this.setState(
-  //       {transactions: response.transactions}
-  //     )
-  //   })
-  // },
   getUserData: function(){
      getJSON('/gettransaction').then((response) => {
       this.setState(
@@ -21,10 +14,9 @@ const TMain = React.createClass({
    this.getUserData()
   },
   render: function () {
-    // console.log(this.state)
     if (!this.state) {
-      return (<div>
-        Loading
+      return (<div className = 'loadingContainer'>
+        <img className = 'loadingSpin' src = 'bam.png' />
       </div>)
     }
     let {transactions} = this.state

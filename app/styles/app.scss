@@ -1,9 +1,30 @@
-.box-style{
-  margin-bottom: 2%;
+@import url('https://fonts.googleapis.com/css?family=Arimo|Francois+One|Roboto');
 
-  cursor: pointer;
-  border: 2px solid #56ADEE;
+@keyframes displayTx {
+  from {opacity: 0}
+  to {opacity: 1}
 }
+
+@keyframes spin {
+    0% {transform:rotate(0deg);}
+    25% {transform:rotate(180deg);}
+    50% {transform:rotate(360deg);}
+    75% {transform:rotate(180deg);}
+    100% {transform:rotate(0deg);}
+}
+
+@keyframes flyIn {
+  from { margin-left: -100%; }
+  to   { margin-left: 0px; }
+}
+
+div{
+  font-family: 'Francois One', sans-serif;
+  font-family: 'Arimo', sans-serif;
+  font-family: 'Roboto', sans-serif;
+  animation: displayTx 2s linear;
+}
+
 .main{
   margin-top: 5%;
 }
@@ -15,4 +36,51 @@
 }
 .crd{
   width: 100%;
+}
+.Cr{
+  width: 100%;
+  margin-bottom: 1%;
+  padding-top: 1%;
+  cursor: pointer;
+  background-color: #bac6e8;
+}
+.Db{
+  width: 100%;
+  margin-bottom: 1%;
+  padding-top: 1%;
+  cursor: pointer;
+  background-color: #d6dced;
+}
+
+.optionCr{
+  font-size: 10px;
+  background: #bac6e8;
+  color: #a5a4ff;
+}
+
+.optionDb{
+  font-size: 10px;
+  background: #d6dced;
+  color: #ffb3a4;
+}
+
+.txSelect {
+  height: 14px;
+}
+
+.loadingSpin {
+  animation: spin 5s infinite;
+  width: 10%;
+  height: 10%;
+  margin-top: 20%;
+}
+
+.loadingContainer {
+  width: 100%;
+  height: 100%;
+  text-align: center;
+}
+
+#navBarIn {
+  animation: flyIn 2s linear;
 }

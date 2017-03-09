@@ -17,54 +17,58 @@ const Transaction = React.createClass({
   },
   render: function () {
     let {tDate, tDetails, tAmount, bal, toAcc, fromAcc, tType} = this.props
-    let type
+    tDate = `${tDate.substr(6, 2)}-${tDate.substr(4, 2)}-${tDate.substr(0, 4)}`
+    let type, optionBg
     if (tType == 'credit' || tType == 'CREDIT') {
       type = 'Cr'
+      optionBg = 'optionCr'
     } else {
       type = 'Db'
+      optionBg = 'optionDb'
     }
     let renderToAcc = () => {
       if (!toAcc) {
         return (
-          <div className='small-4 columns'>
-             <select ref='toAcc' name='toAcc' onChange={this.handleSelect}>
-              <option value='bank'>Bank</option>
-              <option value='cash'>Cash</option>
-              <option value='expense'>Expense</option>
-              <option value='fixed_asset'>Fixed Asset</option>
-              <option value='income'>Income</option>
-              <option value='shareholders_capital'>Shareholders Capital</option>
+          <div className='small-4 columns' style={{fontSize: '12px'}}>
+             <select ref='toAcc' name='toAcc' onChange={this.handleSelect} className = 'txSelect'>
+              <option value='Bank' className = {optionBg}>Bank</option>
+              <option value='Cash' className = {optionBg}>Cash</option>
+              <option value='Expense' className = {optionBg}>Expense</option>
+              <option value='Fixed Asset' className = {optionBg}>Fixed Asset</option>
+              <option value='Income' className = {optionBg}>Income</option>
+              <option value='Shareholders Capital' className = {optionBg}>Shareholders Capital</option>
              </select>
            </div>
         )
       }
       return (
-        <div className='small-4 columns' style={{paddingTop: '1.5%'}}>
+        <div className='small-4 columns' style={{fontSize: '16px'}}>
           {toAcc}
         </div>
      )
     }
     return (
-      <div className='card box-style' style={{width: '100%', paddingTop: '0.5%'}} >
+      <div className={type}>
         <div className='card-section'>
-            <div className='row' style={{fontSize: '18px'}}>
-              <div className='large-3 columns' style={{textAlign: 'center'}}>
+            <div className='row' style={{fontSize: '16px'}}>
+              <div className='small-2 columns' style={{textAlign: 'left'}}>
                 {tDate}
               </div>
-              <div className='large-6 columns' style={{textAlign: 'center', wordWrap:'break-word'}}>
+              <div className='small-6 columns' style={{textAlign: 'left', wordWrap:'break-word'}}>
                 {tDetails}
               </div>
-              <div className='large-3 columns' style={{textAlign: 'center'}}>
-              {tAmount} {type}
+              <div className='small-2 columns' style={{textAlign: 'right'}}>
+              {tAmount}₹<span style = {{fontSize: '12px'}} >  {type}</span>
               </div>
             </div>
-            <div className='row' style={{paddingTop: '3%', fontSize: '15px'}}>
+            <br></br>
+            <div className='row'>
                   <div className='small-2 columns' style={{textAlign: 'left'}}>
-                    <label htmlFor='toAcc' className='text-right middle'><strong>To account</strong></label>
+                    To account
                  </div>
-                  {renderToAcc()}
+                 {renderToAcc()}
                   <div className='small-6 columns' style={{textAlign: 'right'}}>
-                    <strong>Balance: {bal}</strong>
+                     Balance: {bal}
                   </div>
               </div>
           </div>

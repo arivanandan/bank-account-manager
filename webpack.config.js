@@ -29,8 +29,10 @@ module.exports = {
       Transaction: 'app/components/transaction.jsx',
       Upload: 'app/components/upload.jsx',
       AddTransaction: 'app/components/addtransaction.jsx',
+      ViewGraph: 'app/components/viewgraph.jsx',
       Logout: 'app/components/logout.jsx',
-      applicationStyles: 'app/styles/app.scss'
+      applicationStyles: 'app/styles/app.scss',
+      graphStyles: 'app/styles/graph.css'
     },
     extensions: ['', '.js', '.jsx']
   },
